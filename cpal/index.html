@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `cpal` crate.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, cpal">
+
+    <title>cpal - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../main.css">
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <section class="sidebar">
+        
+        <p class='location'></p>
+    </section>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press 'S' to search, '?' for more options..."
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content mod">
+<h1 class='fqn'><span class='in-band'>Crate <a class='mod' href=''>cpal</a><wbr></span><span class='out-of-band'><a href='stability.html'>[stability]</a> <span id='render-detail'>
+            <a id="collapse-all" href="#">[-]
+            </a>&nbsp;<a id="expand-all" href="#">[+]</a>
+        </span><a id='src-0' href='../src/cpal/lib.rs.html#1-329'>[src]</a></span></h1>
+<div class='docblock'>
+<h1 id="how-to-use-cpal" class='section-header'><a
+                           href="#how-to-use-cpal">How to use cpal</a></h1>
+<p>In order to play a sound, first you need to create a <code>Voice</code>.</p>
+<pre id='rust-example-rendered' class='rust '>
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>voice</span> <span class='op'>=</span> <span class='ident'>cpal</span>::<span class='ident'>Voice</span>::<span class='ident'>new</span>();
+</pre>
+
+<p>Then you must send raw samples to it by calling <code>append_data</code>.
+This function takes three parameters: the number of channels, the number of samples
+that must be played per second, and the number of samples that you have available.</p>
+
+<p>You can then fill the buffer with the data.</p>
+<pre id='rust-example-rendered' class='rust '>
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>buffer</span>: <span class='ident'>cpal</span>::<span class='ident'>Buffer</span><span class='op'>&lt;</span><span class='ident'>f32</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='ident'>voice</span>.<span class='ident'>append_data</span>(<span class='number'>2</span>, <span class='ident'>cpal</span>::<span class='ident'>SamplesRate</span>(<span class='number'>44100</span>), <span class='number'>1024</span>);
+
+<span class='comment'>// filling the buffer with 0s</span>
+<span class='kw'>for</span> <span class='ident'>e</span> <span class='kw'>in</span> <span class='ident'>buffer</span>.<span class='ident'>iter_mut</span>() {
+    <span class='op'>*</span><span class='ident'>e</span> <span class='op'>=</span> <span class='number'>0.0f32</span>;
+}
+</pre>
+
+<p><strong>Important</strong>: the <code>append_data</code> function can return a buffer shorter than what you requested.
+This is the case if the device doesn&#39;t have enough space available. <strong>It happens very often</strong>,
+this is not some obscure situation that can be ignored.</p>
+
+<p>After you have submitted data for the first time, call <code>play</code>:</p>
+<pre id='rust-example-rendered' class='rust '>
+<span class='ident'>voice</span>.<span class='ident'>play</span>();
+</pre>
+
+<p>The audio device of the user will read the buffer that you sent, and play it. If the audio device
+reaches the end of the data, it will stop playing. You must continuously fill the buffer by
+calling <code>append_data</code> repeatedly if you don&#39;t want the audio to stop playing.</p>
+
+<h1 id="native-format" class='section-header'><a
+                           href="#native-format">Native format</a></h1>
+<p>Each <code>Voice</code> is bound to a specific number of channels, samples rate, and samples format.
+If you call <code>append_data</code> with values different than these, then cpal will automatically perform
+a conversion on your data.</p>
+
+<p>If you have the possibility, you should try to match the format of the voice.</p>
+</div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table>
+                    <tr>
+                        <td><a class='stability Unmarked' title='No stability level'></a><a class='struct' href='struct.Buffer.html'
+                               title='cpal::Buffer'>Buffer</a></td>
+                        <td class='docblock short'><p>Represents a buffer that must be filled with audio data.</p>
+</td>
+                    </tr>
+                
+                    <tr>
+                        <td><a class='stability Unmarked' title='No stability level'></a><a class='struct' href='struct.SamplesRate.html'
+                               title='cpal::SamplesRate'>SamplesRate</a></td>
+                        <td class='docblock short'></td>
+                    </tr>
+                
+                    <tr>
+                        <td><a class='stability Unmarked' title='No stability level'></a><a class='struct' href='struct.Voice.html'
+                               title='cpal::Voice'>Voice</a></td>
+                        <td class='docblock short'><p>Controls a sound output. A typical application has one <code>Voice</code> for each sound
+it wants to output.</p>
+</td>
+                    </tr>
+                </table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
+<table>
+                    <tr>
+                        <td><a class='stability Unmarked' title='No stability level'></a><a class='enum' href='enum.SampleFormat.html'
+                               title='cpal::SampleFormat'>SampleFormat</a></td>
+                        <td class='docblock short'><p>Format that each sample has.</p>
+</td>
+                    </tr>
+                </table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
+<table>
+                    <tr>
+                        <td><a class='stability Unmarked' title='No stability level'></a><a class='trait' href='trait.Sample.html'
+                               title='cpal::Sample'>Sample</a></td>
+                        <td class='docblock short'><p>Trait for containers that contain PCM data.</p>
+</td>
+                    </tr>
+                </table><h2 id='types' class='section-header'><a href="#types">Type Definitions</a></h2>
+<table>
+                    <tr>
+                        <td><a class='stability Unmarked' title='No stability level'></a><a class='type' href='type.ChannelsCount.html'
+                               title='cpal::ChannelsCount'>ChannelsCount</a></td>
+                        <td class='docblock short'><p>Number of channels.</p>
+</td>
+                    </tr>
+                </table></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <div id="help" class="hidden">
+        <div class="shortcuts">
+            <h1>Keyboard shortcuts</h1>
+            <dl>
+                <dt>?</dt>
+                <dd>Show this help dialog</dd>
+                <dt>S</dt>
+                <dd>Focus the search field</dd>
+                <dt>&larrb;</dt>
+                <dd>Move up in search results</dd>
+                <dt>&rarrb;</dt>
+                <dd>Move down in search results</dd>
+                <dt>&#9166;</dt>
+                <dd>Go to active search result</dd>
+            </dl>
+        </div>
+        <div class="infos">
+            <h1>Search tricks</h1>
+            <p>
+                Prefix searches with a type followed by a colon (e.g.
+                <code>fn:</code>) to restrict the search to a given type.
+            </p>
+            <p>
+                Accepted types are: <code>fn</code>, <code>mod</code>,
+                <code>struct</code>, <code>enum</code>,
+                <code>trait</code>, <code>typedef</code> (or
+                <code>tdef</code>).
+            </p>
+        </div>
+    </div>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "cpal";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    
+    <script async src="../search-index.js"></script>
+</body>
+</html>
