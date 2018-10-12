@@ -1,6 +1,3 @@
-#![feature(test)]
-extern crate test;
-
 use std::cell::RefCell;
 use std::iter::Cloned;
 use std::slice::{Iter, IterMut};
@@ -59,17 +56,5 @@ where
             Some(c) => *c = *c_buff,
             None => break,
         }
-    }
-}
-
-
-pub fn deinterleave_index<T>(cpal_buffer: &[T], asio_channels: &mut [Vec<T>])
-where
-    T: std::marker::Copy,
-{
-    let num_channels = asio_channels.len();
-    for (i, &sample) in cpal_buffer.iter().enumerate() {
-        let ch = i % num_channels;
-        asio_channels[ch].push(sample);
     }
 }

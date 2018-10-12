@@ -178,11 +178,13 @@ impl EventLoop {
 
 
                                         // interleave all the channels
-                                        let $BuffersTypeIdent {
-                                            cpal: ref mut buffer,
-                                            channel: ref channels,
-                                        } = *$Buffers;
-                                        au::interleave(&mut cpal, &channel);
+                                        {
+                                            let $BuffersTypeIdent {
+                                                cpal: ref mut c_buffer,
+                                                channel: ref channels,
+                                            } = $Buffers;
+                                            au::interleave(&channels, c_buffer);
+                                        }
 
 
                                         let buff = InputBuffer{
@@ -303,7 +305,7 @@ pub fn build_output_stream(
                                     let channel_len = cpal_buffer.len() 
                                         / num_channels as usize;
                                     let mut deinter_channels: Vec<_> = (0..num_channels)
-                                        .map(|_| Vec::with_capacity(channel_len))
+                                        .map(|_| vec![0.0 as $SampleType; channel_len])
                                         .collect();
                                     au::deinterleave(&cpal_buffer[..], &mut deinter_channels[..]);
 

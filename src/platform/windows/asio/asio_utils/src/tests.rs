@@ -1,5 +1,3 @@
-use super::test;
-use super::test::Bencher;
 use super::{deinterleave, deinterleave_index, interleave};
 
 #[test]
@@ -88,42 +86,4 @@ fn deinterleave_two_diff() {
     deinterleave(&a[..], &mut result[..]);
 
     assert_eq!(goal, result);
-}
-
-fn deinterleave_large<T>(a: &[T], result: &mut [Vec<T>])
-where
-    T: Copy,
-{
-    // 1 seconds of audio
-    for _ in 0 .. 86 {
-        deinterleave(&a[..], &mut result[..]);
-    }
-}
-
-fn deinterleave_large_index<T>(a: &[T], result: &mut [Vec<T>])
-where
-    T: Copy,
-{
-    // 1 seconds of audio
-    for _ in 0 .. 86 {
-        deinterleave_index(&a[..], &mut result[..]);
-    }
-}
-
-#[bench]
-fn bench_deinterleave(b: &mut Bencher) {
-    // 512 samples (2 per channel)
-    let a = vec![1; 1024];
-    let mut result = vec![vec![0; 512]; 2];
-    b.iter(|| deinterleave_large(&a[..], &mut result[..]));
-    test::black_box(result);
-}
-
-#[bench]
-fn bench_deinterleave_index(b: &mut Bencher) {
-    // 512 samples (2 per channel)
-    let a = vec![1; 1024];
-    let mut result = vec![vec![0; 512]; 2];
-    b.iter(|| deinterleave_large_index(&a[..], &mut result[..]));
-    test::black_box(result);
 }
