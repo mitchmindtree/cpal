@@ -1,4 +1,5 @@
 extern crate asio_sys as sys;
+extern crate asio_utils as au;
 
 use std;
 use Format;
@@ -139,13 +140,9 @@ impl EventLoop {
                                      $BuffersTypeIdent:ident
                                      ) => {
 
-                                        // Function for deinterleaving because
+                                        // Function for interleaving because
                                         // cpal writes to buffer interleaved
                                         /*
-                                        fn interleave(channels: &[Vec<$SampleType>],
-                                                      buffer: &mut Vec<$SampleType>) {
-                                                          */
-                                        fn interleave(buffers: &mut $BuffersType) {
                                             let $BuffersTypeIdent {
                                                 cpal: ref mut buffer,
                                                 channel: ref channels,
@@ -157,6 +154,7 @@ impl EventLoop {
                                                 }
                                             }
                                         }
+                                        */
 
                                         // For each channel write the cpal data to
                                         // the asio buffer
@@ -180,7 +178,11 @@ impl EventLoop {
 
 
                                         // interleave all the channels
-                                        interleave(&mut $Buffers);
+                                        let $BuffersTypeIdent {
+                                            cpal: ref mut buffer,
+                                            channel: ref channels,
+                                        } = *$Buffers;
+                                        au::interleave(&mut cpal, &channel);
 
 
                                         let buff = InputBuffer{
@@ -287,6 +289,7 @@ pub fn build_output_stream(
                                     }
                                     // Function for deinterleaving because
                                     // cpal writes to buffer interleaved
+                                    /*
                                     fn deinterleave(data_slice: &mut [$SampleType],
                                                     num_channels: usize,
                                                     channels: &mut [Vec<$SampleType>]) {
@@ -295,15 +298,14 @@ pub fn build_output_stream(
                                             channels[ch].push(sample);
                                         }
                                     }
+                                    */
                                     // Deinter all the channels
                                     let channel_len = cpal_buffer.len() 
                                         / num_channels as usize;
                                     let mut deinter_channels: Vec<_> = (0..num_channels)
                                         .map(|_| Vec::with_capacity(channel_len))
                                         .collect();
-                                    deinterleave(&mut cpal_buffer[..],
-                                                 num_channels as usize,
-                                                 &mut deinter_channels);
+                                    au::deinterleave(&cpal_buffer[..], &mut deinter_channels[..]);
 
                                     // For each channel write the cpal data to
                                     // the asio buffer
