@@ -270,6 +270,7 @@ unsafe fn format_from_waveformatex_ptr(
     let data_type = match ((*waveformatex_ptr).wBitsPerSample, (*waveformatex_ptr).wFormatTag) {
         (16, mmreg::WAVE_FORMAT_PCM) => SampleFormat::I16,
         (32, mmreg::WAVE_FORMAT_IEEE_FLOAT) => SampleFormat::F32,
+        (32, mmreg::WAVE_FORMAT_PCM) => SampleFormat::I32,
         (n_bits, mmreg::WAVE_FORMAT_EXTENSIBLE) => {
             let waveformatextensible_ptr = waveformatex_ptr as *const mmreg::WAVEFORMATEXTENSIBLE;
             let sub = (*waveformatextensible_ptr).SubFormat;
@@ -277,6 +278,8 @@ unsafe fn format_from_waveformatex_ptr(
                 SampleFormat::I16
             } else if n_bits == 32 && cmp_guid(&sub, &ksmedia::KSDATAFORMAT_SUBTYPE_IEEE_FLOAT) {
                 SampleFormat::F32
+            } else if n_bits == 32 && cmp_guid(&sub, &ksmedia::KSDATAFORMAT_SUBTYPE_PCM) {
+                SampleFormat::I32
             } else {
                 return None;
             }

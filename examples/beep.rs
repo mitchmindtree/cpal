@@ -46,6 +46,14 @@ fn main() -> Result<(), failure::Error> {
                     }
                 }
             },
+            cpal::StreamData::Output { buffer: cpal::UnknownTypeOutputBuffer::I32(mut buffer) } => {
+                for sample in buffer.chunks_mut(format.channels as usize) {
+                    let value = (next_value() * std::i32::MAX as f32) as i32;
+                    for out in sample.iter_mut() {
+                        *out = value;
+                    }
+                }
+            },
             cpal::StreamData::Output { buffer: cpal::UnknownTypeOutputBuffer::F32(mut buffer) } => {
                 for sample in buffer.chunks_mut(format.channels as usize) {
                     let value = next_value();

@@ -564,6 +564,7 @@ impl EventLoop {
                         match stream.sample_format {
                             SampleFormat::F32 => capture_callback!(f32, F32),
                             SampleFormat::I16 => capture_callback!(i16, I16),
+                            SampleFormat::I32 => capture_callback!(i32, I32),
                             SampleFormat::U16 => capture_callback!(u16, U16),
                         }
                     },
@@ -606,6 +607,7 @@ impl EventLoop {
                         match stream.sample_format {
                             SampleFormat::F32 => render_callback!(f32, F32),
                             SampleFormat::I16 => render_callback!(i16, I16),
+                            SampleFormat::I32 => render_callback!(i32, I32),
                             SampleFormat::U16 => render_callback!(u16, U16),
                         }
                     },
@@ -683,7 +685,7 @@ impl Drop for StreamInner {
 // Returns `None` if the WAVEFORMATEXTENSIBLE does not support the given format.
 fn format_to_waveformatextensible(format: &Format) -> Option<mmreg::WAVEFORMATEXTENSIBLE> {
     let format_tag = match format.data_type {
-        SampleFormat::I16 => mmreg::WAVE_FORMAT_PCM,
+        SampleFormat::I16 | SampleFormat::I32 => mmreg::WAVE_FORMAT_PCM,
         SampleFormat::F32 => mmreg::WAVE_FORMAT_EXTENSIBLE,
         SampleFormat::U16 => return None,
     };
@@ -694,7 +696,7 @@ fn format_to_waveformatextensible(format: &Format) -> Option<mmreg::WAVEFORMATEX
     let block_align = channels * sample_bytes;
     let bits_per_sample = 8 * sample_bytes;
     let cb_size = match format.data_type {
-        SampleFormat::I16 => 0,
+        SampleFormat::I16 | SampleFormat::I32 => 0,
         SampleFormat::F32 => {
             let extensible_size = mem::size_of::<mmreg::WAVEFORMATEXTENSIBLE>();
             let ex_size = mem::size_of::<mmreg::WAVEFORMATEX>();
@@ -718,7 +720,7 @@ fn format_to_waveformatextensible(format: &Format) -> Option<mmreg::WAVEFORMATEX
     let channel_mask = KSAUDIO_SPEAKER_DIRECTOUT;
 
     let sub_format = match format.data_type {
-        SampleFormat::I16 => ksmedia::KSDATAFORMAT_SUBTYPE_PCM,
+        SampleFormat::I16 | SampleFormat::I32 => ksmedia::KSDATAFORMAT_SUBTYPE_PCM,
         SampleFormat::F32 => ksmedia::KSDATAFORMAT_SUBTYPE_IEEE_FLOAT,
         SampleFormat::U16 => return None,
     };

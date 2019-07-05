@@ -128,6 +128,11 @@
 //!                 *elem = 0;
 //!             }
 //!         },
+//!         StreamData::Output { buffer: UnknownTypeOutputBuffer::I32(mut buffer) } => {
+//!             for elem in buffer.iter_mut() {
+//!                 *elem = 0;
+//!             }
+//!         },
 //!         StreamData::Output { buffer: UnknownTypeOutputBuffer::F32(mut buffer) } => {
 //!             for elem in buffer.iter_mut() {
 //!                 *elem = 0.0;
@@ -246,6 +251,8 @@ pub enum UnknownTypeInputBuffer<'a> {
     U16(InputBuffer<'a, u16>),
     /// Samples whose format is `i16`.
     I16(InputBuffer<'a, i16>),
+    /// Samples whose format is `i32`.
+    I32(InputBuffer<'a, i32>),
     /// Samples whose format is `f32`.
     F32(InputBuffer<'a, f32>),
 }
@@ -258,6 +265,8 @@ pub enum UnknownTypeOutputBuffer<'a> {
     U16(OutputBuffer<'a, u16>),
     /// Samples whose format is `i16`.
     I16(OutputBuffer<'a, i16>),
+    /// Samples whose format is `i32`.
+    I32(OutputBuffer<'a, i32>),
     /// Samples whose format is `f32`.
     F32(OutputBuffer<'a, f32>),
 }
@@ -458,7 +467,7 @@ impl SupportedFormat {
     /// - Max sample rate
     pub fn cmp_default_heuristics(&self, other: &Self) -> std::cmp::Ordering {
         use std::cmp::Ordering::Equal;
-        use SampleFormat::{F32, I16, U16};
+        use SampleFormat::{F32, I16, I32, U16};
 
         let cmp_stereo = (self.channels == 2).cmp(&(other.channels == 2));
         if cmp_stereo != Equal {
@@ -478,6 +487,11 @@ impl SupportedFormat {
         let cmp_f32 = (self.data_type == F32).cmp(&(other.data_type == F32));
         if cmp_f32 != Equal {
             return cmp_f32;
+        }
+
+        let cmp_i32 = (self.data_type == I32).cmp(&(other.data_type == I32));
+        if cmp_i32 != Equal {
+            return cmp_i32;
         }
 
         let cmp_i16 = (self.data_type == I16).cmp(&(other.data_type == I16));
@@ -542,6 +556,7 @@ impl<'a> UnknownTypeInputBuffer<'a> {
         match self {
             &UnknownTypeInputBuffer::U16(ref buf) => buf.len(),
             &UnknownTypeInputBuffer::I16(ref buf) => buf.len(),
+            &UnknownTypeInputBuffer::I32(ref buf) => buf.len(),
             &UnknownTypeInputBuffer::F32(ref buf) => buf.len(),
         }
     }
@@ -554,6 +569,7 @@ impl<'a> UnknownTypeOutputBuffer<'a> {
         match self {
             &UnknownTypeOutputBuffer::U16(ref buf) => buf.len(),
             &UnknownTypeOutputBuffer::I16(ref buf) => buf.len(),
+            &UnknownTypeOutputBuffer::I32(ref buf) => buf.len(),
             &UnknownTypeOutputBuffer::F32(ref buf) => buf.len(),
         }
     }

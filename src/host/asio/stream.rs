@@ -298,31 +298,32 @@ impl EventLoop {
                     );
                 }
 
-                // TODO: Add support for the following sample formats to CPAL and simplify the
-                // `process_output_callback` function above by removing the unnecessary sample
-                // conversion function.
-                (&sys::AsioSampleType::ASIOSTInt32LSB, SampleFormat::I16) => {
-                    process_input_callback::<i32, i16, _, _>(
+                (&sys::AsioSampleType::ASIOSTInt32LSB, SampleFormat::I32) => {
+                    process_input_callback::<i32, i32, _, _>(
                         stream_id,
                         callback,
                         &mut interleaved,
                         asio_stream,
                         buffer_index as usize,
                         from_le,
-                        |s| (s >> 16) as i16,
+                        std::convert::identity::<i32>,
                     );
                 }
-                (&sys::AsioSampleType::ASIOSTInt32MSB, SampleFormat::I16) => {
-                    process_input_callback::<i32, i16, _, _>(
+                (&sys::AsioSampleType::ASIOSTInt32MSB, SampleFormat::I32) => {
+                    process_input_callback::<i32, i32, _, _>(
                         stream_id,
                         callback,
                         &mut interleaved,
                         asio_stream,
                         buffer_index as usize,
                         from_be,
-                        |s| (s >> 16) as i16,
+                        std::convert::identity::<i32>,
                     );
                 }
+
+                // TODO: Add support for the following sample formats to CPAL and simplify the
+                // `process_output_callback` function above by removing the unnecessary sample
+                // conversion function.
                 // TODO: Handle endianness conversion for floats? We currently use the `PrimInt`
                 // trait for the `to_le` and `to_be` methods, but this does not support floats.
                 (&sys::AsioSampleType::ASIOSTFloat64LSB, SampleFormat::F32) |
@@ -521,27 +522,27 @@ impl EventLoop {
                 // TODO: Add support for the following sample formats to CPAL and simplify the
                 // `process_output_callback` function above by removing the unnecessary sample
                 // conversion function.
-                (SampleFormat::I16, &sys::AsioSampleType::ASIOSTInt32LSB) => {
-                    process_output_callback::<i16, i32, _, _>(
+                (SampleFormat::I32, &sys::AsioSampleType::ASIOSTInt32LSB) => {
+                    process_output_callback::<i32, i32, _, _>(
                         stream_id,
                         callback,
                         &mut interleaved,
                         silence,
                         asio_stream,
                         buffer_index as usize,
-                        |s| (s as i32) << 16,
+                        std::convert::identity::<i32>,
                         to_le,
                     );
                 }
-                (SampleFormat::I16, &sys::AsioSampleType::ASIOSTInt32MSB) => {
-                    process_output_callback::<i16, i32, _, _>(
+                (SampleFormat::I32, &sys::AsioSampleType::ASIOSTInt32MSB) => {
+                    process_output_callback::<i32, i32, _, _>(
                         stream_id,
                         callback,
                         &mut interleaved,
                         silence,
                         asio_stream,
                         buffer_index as usize,
-                        |s| (s as i32) << 16,
+                        std::convert::identity::<i32>,
                         to_be,
                     );
                 }
@@ -669,6 +670,16 @@ impl InterleavedSample for i16 {
     }
 }
 
+impl InterleavedSample for i32 {
+    fn unknown_type_input_buffer(buffer: &[Self]) -> UnknownTypeInputBuffer {
+        UnknownTypeInputBuffer::I32(::InputBuffer { buffer })
+    }
+
+    fn unknown_type_output_buffer(buffer: &mut [Self]) -> UnknownTypeOutputBuffer {
+        UnknownTypeOutputBuffer::I32(::OutputBuffer { buffer })
+    }
+}
+
 impl InterleavedSample for f32 {
     fn unknown_type_input_buffer(buffer: &[Self]) -> UnknownTypeInputBuffer {
         UnknownTypeInputBuffer::F32(::InputBuffer { buffer })
@@ -713,7 +724,7 @@ fn check_format(
     }
     // unsigned formats are not supported by asio
     match data_type {
-        SampleFormat::I16 | SampleFormat::F32 => (),
+        SampleFormat::I16 | SampleFormat::I32 | SampleFormat::F32 => (),
         SampleFormat::U16 => return Err(BuildStreamError::FormatNotSupported),
     }
     if *channels > num_asio_channels {
